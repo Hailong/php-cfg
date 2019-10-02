@@ -13,6 +13,8 @@ namespace PHPCfg;
 
 class Block
 {
+    /** @var int */
+    public $blockId;
     /** @var Op[] */
     public $children = [];
 
@@ -24,8 +26,9 @@ class Block
 
     public $dead = false;
 
-    public function __construct(self $parent = null)
+    public function __construct(self $parent = null, $blockId = -1)
     {
+        $this->blockId = $blockId;
         if ($parent) {
             $this->parents[] = $parent;
         }

@@ -35,6 +35,8 @@ class Parser
     /** @var Block */
     protected $block;
 
+    protected $blockId = 0;
+
     protected $astParser;
 
     protected $astTraverser;
@@ -64,6 +66,12 @@ class Parser
         $this->astTraverser->addVisitor(new AstVisitor\NameResolver());
         $this->astTraverser->addVisitor(new AstVisitor\LoopResolver());
         $this->astTraverser->addVisitor(new AstVisitor\MagicStringResolver());
+    }
+
+    protected function generateBlockId() {
+        $id = $this->blockId;
+        $this->blockId++;
+        return $id;
     }
 
     /**
@@ -210,7 +218,7 @@ class Parser
             $node->flags,
             $this->parseExprNode($node->extends),
             $this->parseExprList($node->implements),
-            $this->parseNodes($node->stmts, new Block()),
+            $this->parseNodes($node->stmts, new Block(null, $this->generateBlockId())),
             $this->mapAttributes($node)
         );
         $this->currentClass = $old;
@@ -223,7 +231,7 @@ class Parser
         }
         foreach ($node->consts as $const) {
             $tmp = $this->block;
-            $this->block = $valueBlock = new Block();
+            $this->block = $valueBlock = new Block(null, $this->generateBlockId());
             $value = $this->parseExprNode($const->value);
             $this->block = $tmp;
 
@@ -263,7 +271,8 @@ class Parser
     {
         foreach ($node->consts as $const) {
             $tmp = $this->block;
-            $this->block = $valueBlock = new Block();
+            $this->block = $valueBlock = new Block(null, $this->generateBlockId());
+            $this->generateBlockId++;
             $value = $this->parseExprNode($const->value);
             $this->block = $tmp;
 
@@ -282,8 +291,8 @@ class Parser
 
     protected function parseStmt_Do(Stmt\Do_ $node)
     {
-        $loopBody = new Block($this->block);
-        $loopEnd = new Block();
+        $loopBody = new Block($this->block, $this->generateBlockId());
+        $loopEnd = new Block(null, $this->generateBlockId());
         $this->block->children[] = new Jump($loopBody, $this->mapAttributes($node));
         $loopBody->addParent($this->block);
 
@@ -340,9 +349,9 @@ class Parser
         $iterable = $this->readVariable($this->parseExprNode($node->expr));
         $this->block->children[] = new Op\Iterator\Reset($iterable, $attrs);
 
-        $loopInit = new Block();
-        $loopBody = new Block();
-        $loopEnd = new Block();
+        $loopInit = new Block(null, $this->generateBlockId());
+        $loopBody = new Block(null, $this->generateBlockId());
+        $loopEnd = new Block(null, $this->generateBlockId());
 
         $this->block->children[] = new Jump($loopInit, $attrs);
         $loopInit->addParent($this->block);
@@ -412,7 +421,7 @@ class Parser
         } else {
             $this->ctx->unresolvedGotos[$node->name->toString()][] = [$this->block, $attributes];
         }
-        $this->block = new Block();
+        $this->block = new Block(null, $this->generateBlockId());
         $this->block->dead = true;
     }
 
@@ -426,7 +435,7 @@ class Parser
 
     protected function parseStmt_If(Stmt\If_ $node)
     {
-        $endBlock = new Block();
+        $endBlock = new Block(null, $this->generateBlockId());
         $this->parseIf($node, $endBlock);
         $this->block = $endBlock;
     }
@@ -438,8 +447,8 @@ class Parser
     {
         $attrs = $this->mapAttributes($node);
         $cond = $this->readVariable($this->parseExprNode($node->cond));
-        $ifBlock = new Block($this->block);
-        $elseBlock = new Block($this->block);
+        $ifBlock = new Block($this->block, $this->generateBlockId());
+        $elseBlock = new Block($this->block, $this->generateBlockId());
 
         $this->block->children[] = new JumpIf($cond, $ifBlock, $elseBlock, $attrs);
         $this->processAssertions($cond, $ifBlock, $elseBlock);
@@ -476,7 +485,7 @@ class Parser
         $this->block->children[] = new Op\Stmt\Interface_(
             $name,
             $this->parseExprList($node->extends),
-            $this->parseNodes($node->stmts, new Block()),
+            $this->parseNodes($node->stmts, new Block(null, $this->generateBlockId())),
             $this->mapAttributes($node)
         );
         $this->currentClass = $old;
@@ -488,7 +497,7 @@ class Parser
             throw new \RuntimeException("Label '{$node->name->toString()}' already defined");
         }
 
-        $labelBlock = new Block();
+        $labelBlock = new Block(null, $this->generateBlockId());
         $this->block->children[] = new Jump($labelBlock, $this->mapAttributes($node));
         $labelBlock->addParent($this->block);
         if (isset($this->ctx->unresolvedGotos[$node->name->toString()])) {
@@ -524,7 +533,7 @@ class Parser
         foreach ($node->props as $prop) {
             if ($prop->default) {
                 $tmp = $this->block;
-                $this->block = $defaultBlock = new Block();
+                $this->block = $defaultBlock = new Block(null, $this->generateBlockId());
                 $defaultVar = $this->parseExprNode($prop->default);
                 $this->block = $tmp;
             } else {
@@ -551,7 +560,7 @@ class Parser
         }
         $this->block->children[] = new Op\Terminal\Return_($expr, $this->mapAttributes($node));
         // Dump everything after the return
-        $this->block = new Block();
+        $this->block = new Block(null, $this->generateBlockId());
         $this->block->dead = true;
     }
 
@@ -562,7 +571,7 @@ class Parser
             $defaultVar = null;
             if ($var->default) {
                 $tmp = $this->block;
-                $this->block = $defaultBlock = new Block();
+                $this->block = $defaultBlock = new Block(null, $this->generateBlockId());
                 $defaultVar = $this->parseExprNode($var->default);
                 $this->block = $tmp;
             }
@@ -585,12 +594,12 @@ class Parser
 
         // Desugar switch into compare-and-jump sequence
         $cond = $this->parseExprNode($node->cond);
-        $endBlock = new Block();
+        $endBlock = new Block(null, $this->generateBlockId());
         $defaultBlock = $endBlock;
         /** @var Block|null $prevBlock */
         $prevBlock = null;
         foreach ($node->cases as $case) {
-            $ifBlock = new Block();
+            $ifBlock = new Block(null, $this->generateBlockId());
             if ($prevBlock && ! $prevBlock->dead) {
                 $prevBlock->children[] = new Jump($ifBlock);
                 $ifBlock->addParent($prevBlock);
@@ -602,7 +611,7 @@ class Parser
                     $this->readVariable($cond), $this->readVariable($caseExpr), $this->mapAttributes($case)
                 );
 
-                $elseBlock = new Block();
+                $elseBlock = new Block(null, $this->generateBlockId());
                 $this->block->children[] = new JumpIf($cmp->result, $ifBlock, $elseBlock);
                 $ifBlock->addParent($this->block);
                 $elseBlock->addParent($this->block);
@@ -630,7 +639,7 @@ class Parser
             $this->readVariable($this->parseExprNode($node->expr)),
             $this->mapAttributes($node)
         );
-        $this->block = new Block(); // dead code
+        $this->block = new Block(null, $this->generateBlockId()); // dead code
         $this->block->dead = true;
     }
 
@@ -641,7 +650,7 @@ class Parser
         $this->currentClass = $name;
         $this->block->children[] = new Op\Stmt\Trait_(
             $name,
-            $this->parseNodes($node->stmts, new Block()),
+            $this->parseNodes($node->stmts, new Block(null, $this->generateBlockId())),
             $this->mapAttributes($node)
         );
         $this->currentClass = $old;
@@ -672,9 +681,9 @@ class Parser
 
     protected function parseStmt_While(Stmt\While_ $node)
     {
-        $loopInit = new Block();
-        $loopBody = new Block();
-        $loopEnd = new Block();
+        $loopInit = new Block(null, $this->generateBlockId());
+        $loopBody = new Block(null, $this->generateBlockId());
+        $loopEnd = new Block(null, $this->generateBlockId());
         $this->block->children[] = new Jump($loopInit, $this->mapAttributes($node));
         $loopInit->addParent($this->block);
         $this->block = $loopInit;
@@ -1009,7 +1018,7 @@ class Parser
         $block->addParent($this->block);
         $this->block = $block;
         $result = $this->parseExprNode($expr->expr);
-        $end = new Block();
+        $end = new Block(null, $this->generateBlockId());
         $this->block->children[] = new Jump($end, $attrs);
         $end->addParent($this->block);
         $this->block = $end;
@@ -1031,7 +1040,7 @@ class Parser
 
         $this->block->children[] = new Op\Terminal\Exit_($e, $this->mapAttributes($expr));
         // Dump everything after the exit
-        $this->block = new Block();
+        $this->block = new Block(null, $this->generateBlockId());
         $this->block->dead = true;
 
         return new Literal(1);
@@ -1376,12 +1385,12 @@ class Parser
         $cond = $this->readVariable($this->parseExprNode($node->cond));
         $cases = [];
         $targets = [];
-        $endBlock = new Block();
+        $endBlock = new Block(null, $this->generateBlockId());
         $defaultBlock = $endBlock;
         /** @var null|Block $block */
         $block = null;
         foreach ($node->cases as $case) {
-            $caseBlock = new Block($this->block);
+            $caseBlock = new Block($this->block, $this->generateBlockId());
             if ($block && ! $block->dead) {
                 // wire up!
                 $block->children[] = new Jump($caseBlock);
@@ -1451,7 +1460,7 @@ class Parser
         foreach ($params as $param) {
             if ($param->default) {
                 $tmp = $this->block;
-                $this->block = $defaultBlock = new Block();
+                $this->block = $defaultBlock = new Block(null, $this->generateBlockId());
                 $defaultVar = $this->parseExprNode($param->default);
                 $this->block = $tmp;
             } else {
@@ -1477,8 +1486,8 @@ class Parser
     private function parseShortCircuiting(AstBinaryOp $expr, $isOr)
     {
         $result = new Temporary();
-        $longBlock = new Block();
-        $endBlock = new Block();
+        $longBlock = new Block(null, $this->generateBlockId());
+        $endBlock = new Block(null, $this->generateBlockId());
 
         $left = $this->readVariable($this->parseExprNode($expr->left));
         $if = $isOr ? $endBlock : $longBlock;
