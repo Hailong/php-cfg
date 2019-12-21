@@ -1,5 +1,5 @@
 {
-    "name": "ircmaxell/php-cfg",
+    "name": "silverfoxy/php-cfg",
     "description": "A Control Flow Graph implementation for PHP",
     "license": "MIT",
     "authors": [

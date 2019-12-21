@@ -12,11 +12,13 @@ declare(strict_types=1);
 namespace PHPCfg\Operand;
 
 use PHPCfg\Operand;
+use PHPTypes\Type;
 
 class Symbol extends Operand
 {
     public $original;
     public array $conditions = [];
+    public ?Type $type;
 
     /**
      * Constructs a symbolic variable

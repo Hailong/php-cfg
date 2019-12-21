@@ -26,6 +26,9 @@ class Block
 
     public $dead = false;
 
+    // flag that represents if the block has been covered
+    public $covered = false;
+
     public function __construct(self $parent = null, $blockId = -1)
     {
         $this->blockId = $blockId;
