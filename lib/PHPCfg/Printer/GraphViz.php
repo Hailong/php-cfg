@@ -125,7 +125,7 @@ class GraphViz extends Printer
             foreach ($ops as $op) {
                 $output .= $this->indent("\n".$op['label']);
             }
-            $nodes[$block] = $this->createNode($prefix.'block_'.$blockId, $prefix.'block_'.$block->blockId . $output);
+            $nodes[$block] = $this->createNode($prefix.'block_'.$blockId, $prefix.'block_'.$block->blockId . $output, $block->covered ? 'green' : 'red');
             $graph->setNode($nodes[$block]);
         }
 
@@ -165,9 +165,13 @@ class GraphViz extends Printer
         return $graph;
     }
 
-    private function createNode($id, $content)
+    private function createNode($id, $content, $color=null)
     {
         $node = new Node($id, $content);
+        if (isset($color)) {
+            $node->setstyle('filled');
+            $node->setfillcolor($color);
+        }
         foreach ($this->options['node'] as $name => $value) {
             $node->{'set'.$name}($value);
         }
