@@ -1,0 +1,7 @@
+
+Fatal error: Uncaught TypeError: Argument 1 passed to PHPCfg\Traverser::traverseFunc() must be an instance of PHPCfg\Func, instance of PHPCfg\Block given, called in /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php on line 31 and defined in /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php:36
+Stack trace:
+#0 /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php(31): PHPCfg\Traverser->traverseFunc(Object(PHPCfg\Block))
+#1 /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/demo.php(33): PHPCfg\Traverser->traverse(Object(PHPCfg\Script))
+#2 {main}
+  thrown in /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php on line 36

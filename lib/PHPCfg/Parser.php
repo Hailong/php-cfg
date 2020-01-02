@@ -664,6 +664,22 @@ class Parser
     protected function parseStmt_TryCatch(Stmt\TryCatch $node)
     {
         // TODO: implement this!!!
+        $try = $this->parseNodes($node->stmts, new Block(null, $this->generateBlockId()));
+        $try->addParent($this->block);
+        $this->block->children[] = new Op\Stmt\Jump($try, $this->mapAttributes($node));
+        $this->block = $try;
+        foreach ($node->catches as $catch) {
+            $catches[] = $this->parseNodes($catch->stmts, new Block(null, $this->generateBlockId()));
+        }
+        if (isset($node->finally)) {
+            $finally = $this->parseNodes($node->finally->stmts, new Block(null, $this->generateBlockId()));
+        }
+        foreach ($catches as $catch) {
+            $catch->children[] = new Op\Stmt\Jump($finally, $this->mapAttributes($node));
+            $this->script->functions[] = $catch;
+        }
+        $try->children[] = new Op\Stmt\Jump($finally, $this->mapAttributes($node));
+        $this->block = $finally;
     }
 
     protected function parseStmt_Unset(Stmt\Unset_ $node)
