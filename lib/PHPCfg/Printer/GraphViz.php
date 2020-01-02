@@ -11,12 +11,16 @@ declare(strict_types=1);
 
 namespace PHPCfg\Printer;
 
+use Exception;
+use PHPCfg\CatchableBlock;
+use PHPCfg\CatchBlock;
 use PHPCfg\Func;
 use PHPCfg\Printer;
 use PHPCfg\Script;
 use phpDocumentor\GraphViz\Edge;
 use phpDocumentor\GraphViz\Graph;
 use phpDocumentor\GraphViz\Node;
+use PhpParser\Node\Stmt\Foreach_;
 
 class GraphViz extends Printer
 {
@@ -40,9 +44,17 @@ class GraphViz extends Printer
     {
         $i = 0;
         $graph = $this->createGraph();
+        // Print main function block
         $this->printFuncWithHeader($script->main, $graph, 'func_'.++$i.'_');
+        // Print function blocks
         foreach ($script->functions as $func) {
             $this->printFuncWithHeader($func, $graph, 'func_'.++$i.'_');
+        }
+        // Print catch blocks
+        if (isset($script->catches)) {
+            foreach ($script->catches as $catch_block) {
+                $this->printCatchWithHeader($catch_block, $graph, 'catch_'.$catch_block->blockId.'_');
+            }
         }
 
         return $graph;
@@ -63,7 +75,7 @@ class GraphViz extends Printer
             $setter = 'set'.$name;
             $graph->{$setter}($value);
         }
-        $rendered = $this->render($func->cfg);
+        $rendered = $this->renderBlock($func->cfg);
         $nodes = new \SplObjectStorage();
         foreach ($rendered['varIds'] as $var) {
             if (empty($var->ops) && empty($var->usages)) {
@@ -109,23 +121,61 @@ class GraphViz extends Printer
         );
         $graph->setNode($header);
 
-        $start = $this->printFuncInto($func, $graph, $prefix);
+        $start = $this->printFuncInfo($func, $graph, $prefix);
         $edge = $this->createEdge($header, $start);
         $graph->link($edge);
     }
 
-    protected function printFuncInto(Func $func, Graph $graph, $prefix)
+    protected function printCatchWithHeader(CatchBlock $catch, Graph $graph, $prefix)
+    {
+        $types = '';
+        foreach ($catch->catch as $catch_types) {
+            foreach ($catch_types as $catch_type) {
+                $types = $catch_type . ' | ';
+            }
+        }
+        $types = substr($types, 0, -3);
+        $header = $this->createNode(
+            $prefix.'header', sprintf("Catch_%s(%s):", $catch->blockId, $types)
+        );
+        $graph->setNode($header);
+
+        $start = $this->printCatchInfo($catch, $graph, $prefix);
+        $edge = $this->createEdge($header, $start);
+        $graph->link($edge);
+    }
+
+    protected function printFuncInfo(Func $func, Graph $graph, $prefix)
     {
         $rendered = $this->render($func);
         $nodes = new \SplObjectStorage();
         foreach ($rendered['blocks'] as $block) {
-            $blockId = $rendered['blockIds'][$block];
+            $blockId = $block->blockId;
             $ops = $rendered['blocks'][$block];
             $output = '';
             foreach ($ops as $op) {
                 $output .= $this->indent("\n".$op['label']);
             }
-            $nodes[$block] = $this->createNode($prefix.'block_'.$blockId, $prefix.'block_'.$block->blockId . $output, $block->covered ? 'green' : 'red');
+            $block_content = $prefix.'block_'.$block->blockId;
+            if ($block instanceof CatchableBlock) {
+                $exception_header = "\nCatches:";
+                $exception_content = "";
+                assert(sizeof($block->catches) > 0);
+                foreach ($block->catches as $catch_blocks) {
+                    foreach ($catch_blocks as $catch_block) {
+                        foreach ($catch_block->catch as $catch) {
+                            foreach($catch as $exception_type) {
+                                $exception_content .= $exception_type . ' | ';
+                            }
+                            $exception_content = substr($exception_content, 0, -3);
+                            $exception_content .= ' -> ' . 'Catch_' . $catch_block->blockId . "\n";
+                        }
+                    }
+                }
+                $block_content .= $exception_header . $this->indent("\n" . $exception_content);
+            }
+            $block_content .= $output;
+            $nodes[$block] = $this->createNode($prefix.'block_'.$blockId, $block_content, $block->covered ? 'green' : 'red');
             $graph->setNode($nodes[$block]);
         }
 
@@ -140,6 +190,36 @@ class GraphViz extends Printer
         }
 
         return $nodes[$func->cfg];
+    }
+
+    protected function printCatchInfo(CatchBlock $block, Graph $graph, $prefix)
+    {
+        $rendered = $this->renderBlock($block);
+        $nodes = new \SplObjectStorage();
+        foreach ($rendered['blocks'] as $block) {
+            $blockId = $block->blockId+1;
+            $ops = $rendered['blocks'][$block];
+            $output = '';
+            foreach ($ops as $op) {
+                $output .= $this->indent("\n".$op['label']);
+            }
+            $block_content = $prefix.'block_'.$blockId;
+            $block_content .= $output;
+            $nodes[$block] = $this->createNode($prefix.'block_'.$blockId, $block_content, 'gray');
+            $graph->setNode($nodes[$block]);
+        }
+
+        foreach ($rendered['blocks'] as $block) {
+            foreach ($rendered['blocks'][$block] as $op) {
+                foreach ($op['childBlocks'] as $child) {
+                    $edge = $this->createEdge($nodes[$block], $nodes[$child['block']]);
+                    $edge->setlabel($child['name']);
+                    $graph->link($edge);
+                }
+            }
+        }
+
+        return $nodes[$block];
     }
 
     /**

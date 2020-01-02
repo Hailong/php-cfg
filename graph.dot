@@ -1,7 +1,105 @@
+digraph "cfg" {
+"func_1_block_0" -> "func_1_block_3" [
+label="target"
+]
+"func_1_block_3" -> "func_1_block_5" [
+label="if"
+]
+"func_1_block_3" -> "func_1_block_8" [
+label="else"
+]
+"func_1_block_5" -> "func_1_block_8" [
+label="target"
+]
+"func_1_block_8" -> "func_1_block_9" [
+label="target"
+]
+"func_1_block_9" -> "func_1_block_10" [
+label="target"
+]
+"func_1_header" -> "func_1_block_0" [
 
-Fatal error: Uncaught TypeError: Argument 1 passed to PHPCfg\Traverser::traverseFunc() must be an instance of PHPCfg\Func, instance of PHPCfg\Block given, called in /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php on line 31 and defined in /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php:36
-Stack trace:
-#0 /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php(31): PHPCfg\Traverser->traverseFunc(Object(PHPCfg\Block))
-#1 /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/demo.php(33): PHPCfg\Traverser->traverse(Object(PHPCfg\Script))
-#2 {main}
-  thrown in /Users/silverfox/Documents/pragsec/autodebloating/php-cfg/lib/PHPCfg/Traverser.php on line 36
+]
+"catch_0_header" -> "catch_0_block_1" [
+
+]
+"catch_1_header" -> "catch_1_block_2" [
+
+]
+"catch_2_header" -> "catch_2_block_3" [
+
+]
+"func_1_header" [
+label="Function {main}():"
+shape="rect"
+]
+"func_1_block_0" [
+label="func_1_block_0\l        Stmt_Jump"
+style="filled"
+fillcolor="red"
+shape="rect"
+]
+"func_1_block_3" [
+label="func_1_block_3
+Catches:\l        RangeException -> Catch_0\l        Exception -> Catch_1\l        \l        Expr_Assign\l            var: Var#1<$a>\l            expr: LITERAL(1)\l            result: Var#2\l        Expr_BinaryOp_Greater\l            left: LITERAL(1)\l            right: LITERAL(0)\l            result: Var#3\l        Stmt_JumpIf\l            cond: Var#3"
+style="filled"
+fillcolor="red"
+shape="rect"
+]
+"func_1_block_5" [
+label="func_1_block_5
+Catches:\l        RangeException -> Catch_0\l        Exception -> Catch_1\l        \l        Expr_Assign\l            var: Var#4<$d>\l            expr: LITERAL(4)\l            result: Var#5\l        Stmt_Jump"
+style="filled"
+fillcolor="red"
+shape="rect"
+]
+"func_1_block_8" [
+label="func_1_block_8
+Catches:\l        RangeException -> Catch_0\l        Exception -> Catch_1\l        RangeException -> Catch_2\l        \l        Expr_Assign\l            var: Var#6<$e>\l            expr: LITERAL(5)\l            result: Var#7\l        Stmt_Jump"
+style="filled"
+fillcolor="red"
+shape="rect"
+]
+"func_1_block_9" [
+label="func_1_block_9\l        Expr_Assign\l            var: Var#8<$g>\l            expr: LITERAL(7)\l            result: Var#9\l        Stmt_Jump"
+style="filled"
+fillcolor="red"
+shape="rect"
+]
+"func_1_block_10" [
+label="func_1_block_10\l        Expr_Assign\l            var: Var#10<$c>\l            expr: LITERAL(3)\l            result: Var#11\l        Terminal_Return"
+style="filled"
+fillcolor="red"
+shape="rect"
+]
+"catch_0_header" [
+label="Catch_0(RangeException):"
+shape="rect"
+]
+"catch_0_block_1" [
+label="catch_0_block_1\l        Expr_Assign\l            var: Var#1<$h>\l            expr: LITERAL(8)\l            result: Var#2"
+style="filled"
+fillcolor="gray"
+shape="rect"
+]
+"catch_1_header" [
+label="Catch_1(Exception):"
+shape="rect"
+]
+"catch_1_block_2" [
+label="catch_1_block_2\l        Expr_Assign\l            var: Var#1<$b>\l            expr: LITERAL(2)\l            result: Var#2"
+style="filled"
+fillcolor="gray"
+shape="rect"
+]
+"catch_2_header" [
+label="Catch_2(RangeException):"
+shape="rect"
+]
+"catch_2_block_3" [
+label="catch_2_block_3\l        Expr_Assign\l            var: Var#1<$f>\l            expr: LITERAL(6)\l            result: Var#2"
+style="filled"
+fillcolor="gray"
+shape="rect"
+]
+}

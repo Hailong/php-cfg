@@ -46,7 +46,7 @@ abstract class Printer
 
     protected function getBlockId(Block $block)
     {
-        return $this->blocks[$block];
+        return $block->blockId;
     }
 
     protected function renderOperand(Operand $var)
@@ -201,18 +201,18 @@ abstract class Printer
         return $this->varIds[$var] = $this->varIds->count() + 1;
     }
 
-    protected function render(Func $func)
-    {
-        if (null !== $func->cfg) {
-            $this->enqueueBlock($func->cfg);
-        }
+    protected function renderBlock(Block $block) {
+        $this->enqueueBlock($block);
+        return $this->renderQueue();
+    }
 
+    protected function renderQueue($func = null) {
         $renderedOps = new \SplObjectStorage();
         $renderedBlocks = new \SplObjectStorage();
         while ($this->blockQueue->count() > 0) {
             $block = $this->blockQueue->dequeue();
             $ops = [];
-            if ($block === $func->cfg) {
+            if (isset($func) && $block === $func->cfg) {
                 foreach ($func->params as $param) {
                     $renderedOps[$param] = $ops[] = $this->renderOp($param);
                 }
@@ -242,6 +242,15 @@ abstract class Printer
             'varIds' => $varIds,
             'blockIds' => $blockIds,
         ];
+    }
+
+    protected function render(Func $func)
+    {
+        if (null !== $func->cfg) {
+            $this->enqueueBlock($func->cfg);
+        }
+
+        return $this->renderQueue($func);
     }
 
     protected function renderType(?Op\Type $type): string {
