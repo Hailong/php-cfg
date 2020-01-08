@@ -116,8 +116,9 @@ class GraphViz extends Printer
     protected function printFuncWithHeader(Func $func, Graph $graph, $prefix)
     {
         $name = $func->getScopedName();
+        $function_header = "Function ${name}():" . ((null !== $func->getAttribute('path')) ? '\nPath: '.$func->getAttribute('path') : '');
         $header = $this->createNode(
-            $prefix.'header', "Function ${name}():"
+            $prefix.'header', $function_header
         );
         $graph->setNode($header);
 

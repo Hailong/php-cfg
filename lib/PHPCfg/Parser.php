@@ -61,8 +61,9 @@ class Parser
 
     protected $anonId = 0;
 
-    public function __construct(AstParser $astParser, AstTraverser $astTraverser = null)
+    public function __construct(AstParser $astParser, AstTraverser $astTraverser = null, $InitialBlockId = 0)
     {
+        $this->blockId = $InitialBlockId;
         $this->catchStack = [];
         $this->astParser = $astParser;
         if (! $astTraverser) {
@@ -101,23 +102,23 @@ class Parser
      * @param string $fileName
      * @returns Script
      */
-    public function parse($code, $fileName)
+    public function parse($code, $fileName, $main_function_name = '{main}')
     {
-        return $this->parseAst($this->astParser->parse($code), $fileName);
+        return $this->parseAst($this->astParser->parse($code), $fileName, $main_function_name);
     }
 
     /**
      * @param array  $ast      PHP-Parser AST
      * @param string $fileName
      */
-    public function parseAst($ast, $fileName): Script
+    public function parseAst($ast, $fileName, $main_function_name): Script
     {
         $this->fileName = $fileName;
         $ast = $this->astTraverser->traverse($ast);
 
         $this->script = $script = new Script();
         $script->functions = [];
-        $script->main = new Func('{main}', 0, new Op\Type\Void_, null);
+        $script->main = new Func($main_function_name, 0, new Op\Type\Void_, null, ['path'=>$fileName]);
         $this->parseFunc($script->main, [], $ast);
 
         // Reset script specific state

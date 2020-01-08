@@ -54,6 +54,11 @@ class DeclarationFinder extends AbstractVisitor
         return $this->functions;
     }
 
+    public function addFunction(Op\Stmt\Function_ $op) 
+    {
+        $this->functions[] = $op;
+    }
+
     public function getInterfaces()
     {
         return $this->interfaces;

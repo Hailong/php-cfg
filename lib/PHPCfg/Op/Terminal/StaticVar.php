@@ -19,9 +19,9 @@ class StaticVar extends Terminal
 {
     public Operand $var;
 
-    public ?Block $defaultBlock;
+    public ?Block $defaultBlock = null;
 
-    public ?Operand $defaultVar;
+    public ?Operand $defaultVar = null;
 
     public function __construct(Operand $var, Block $defaultBlock = null, Operand $defaultVar = null, array $attributes = [])
     {
