@@ -21,12 +21,19 @@ class Array_ extends Expr
 
     public array $byRef;
 
+    /**
+     * Pointer to current array index
+     * Used in iterators
+     */
+    public int $internalPointer;
+
     public function __construct(array $keys, array $values, array $byRef, array $attributes = [])
     {
         parent::__construct($attributes);
         $this->keys = $this->addReadRefs(...$keys);
         $this->values = $this->addReadRefs(...$values);
         $this->byRef = $byRef;
+        $this->internalPointer = 0;
     }
 
     public function getVariableNames(): array

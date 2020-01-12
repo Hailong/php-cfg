@@ -39,7 +39,6 @@ class VariableFinder extends AbstractVisitor
     public function enterOp(Op $op, Block $block)
     {
         foreach ($op->getVariableNames() as $name) {
-            echo $name . PHP_EOL;
             $var = $op->{$name};
             if (! is_array($var)) {
                 $var = [$var];

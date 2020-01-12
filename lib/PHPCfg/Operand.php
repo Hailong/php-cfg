@@ -15,6 +15,8 @@ use PHPTypes\Type;
 
 abstract class Operand
 {
+    protected array $attributes = [];
+
     public ?Type $type = null;
 
     public array $assertions = [];
@@ -22,6 +24,11 @@ abstract class Operand
     public array $ops = [];
 
     public array $usages = [];
+
+    public function __construct(array $attributes = [])
+    {
+        $this->attributes = $attributes;
+    }
 
     public function getType(): string
     {
@@ -95,5 +102,48 @@ abstract class Operand
             }
         }
         $this->assertions[] = ['var' => $op, 'assertion' => $assert];
+    }
+
+    public function getLine(): int
+    {
+        return $this->getAttribute('startLine', -1);
+    }
+
+    public function getFile(): string
+    {
+        return $this->getAttribute('filename', 'unknown');
+    }
+
+    public function &getAttribute(string $key, $default = null)
+    {
+        if (! $this->hasAttribute($key)) {
+            return $default;
+        }
+
+        return $this->attributes[$key];
+    }
+
+    public function setAttribute(string $key, &$value): void
+    {
+        $this->attributes[$key] = $value;
+    }
+
+    public function hasAttribute(string $key)
+    {
+        return array_key_exists($key, $this->attributes);
+    }
+
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    public function mapAttributes(Op $op)
+    {
+        $this->attributes = array_merge(
+            $this->attributes,
+            $op->getAttributes()
+        );
+        return $this->attributes;
     }
 }

@@ -104,4 +104,9 @@ abstract class Op
 
         return $op->addWriteOp($this);
     }
+
+    public function setResult(Operand $result) {
+        $this->result = $result;
+        $this->result->mapAttributes($this);
+    }
 }
