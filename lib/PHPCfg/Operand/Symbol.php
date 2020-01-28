@@ -18,6 +18,7 @@ class Symbol extends Operand
 {
     public $original;
     public array $conditions = [];
+    public bool $is_set = true;
     public ?Type $type;
 
     /**
