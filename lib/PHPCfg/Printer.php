@@ -81,10 +81,10 @@ abstract class Printer
         if ($var instanceof Temporary) {
             $id = $this->getVarId($var);
             if ($var->original) {
-                return "Var{$type}#${id}".'<'.$this->renderOperand($var->original).'>';
+                return "Var{$type}#${id}".'<'.$this->renderOperand($var->original).'>'.' '.$this->printableResult($var);
             }
 
-            return "Var{$type}#".$this->getVarId($var);
+            return "Var{$type}#".$this->getVarId($var).' '.$this->printableResult($var);
         }
         if ($var instanceof NullOperand) {
             return "NULL";
@@ -155,9 +155,30 @@ abstract class Printer
 
         return [
             'op' => $op,
-            'label' => $result,
+            'label' => $result . ' ' . $this->printableResult($op),
             'childBlocks' => $childBlocks,
         ];
+    }
+
+    protected function printableResult($op) {
+        $result = $op->getResult();
+        if (null !== $result) {
+            if ($result instanceof Operand\NullOperand) {
+                return 'NULL';
+            }
+            else if ($result instanceof Operand\Symbol) {
+                return 'Symbol';
+            }
+            else if (is_array($result->value)) {
+                return print_r($result->value, true);
+            }
+            else {
+                return $result->value;
+            }
+        }
+        // var_dump($op);
+        // die;
+        return 'is null';
     }
 
     protected function renderAssertion(Assertion $assert)

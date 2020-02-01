@@ -29,6 +29,7 @@ class Symbol extends Operand
     public function __construct(Operand $original = null)
     {
         $this->original = $original;
+        $this->value = 'Symbol';
     }
 
     public function addCondition($condition) {

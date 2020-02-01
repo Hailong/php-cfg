@@ -17,6 +17,8 @@ abstract class Op
 
     protected array $writeVariables = [];
 
+    protected Operand $exec_result;
+
     public function __construct(array $attributes = [])
     {
         $this->attributes = $attributes;
@@ -106,7 +108,11 @@ abstract class Op
     }
 
     public function setResult(Operand $result) {
-        $this->result = $result;
-        $this->result->mapAttributes($this);
+        $this->exec_result = $result;
+        $this->exec_result->mapAttributes($this);
+    }
+
+    public function getResult() {
+        return $this->exec_result ?? null;
     }
 }
