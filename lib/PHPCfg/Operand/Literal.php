@@ -12,13 +12,17 @@ declare(strict_types=1);
 namespace PHPCfg\Operand;
 
 use PHPCfg\Operand;
+use PHPTypes\Type;
 
 class Literal extends Operand
 {
     public $value;
 
-    public function __construct($value)
+    public function __construct($value, ?Type $type=null)
     {
         $this->value = $value;
+        if (null !== $type) {
+            $this->type = $type;
+        }
     }
 }
