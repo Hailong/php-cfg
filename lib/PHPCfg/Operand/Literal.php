@@ -25,4 +25,8 @@ class Literal extends Operand
             $this->type = $type;
         }
     }
+
+    public function getResult() {
+        return $this;
+    }
 }

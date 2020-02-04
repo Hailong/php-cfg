@@ -25,7 +25,7 @@ abstract class Operand
 
     public array $usages = [];
 
-    protected Operand $exec_result;
+    protected ?Operand $exec_result = null;
 
     public function __construct(array $attributes = [])
     {

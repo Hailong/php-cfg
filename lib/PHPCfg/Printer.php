@@ -84,7 +84,7 @@ abstract class Printer
                 return "Var{$type}#${id}".'<'.$this->renderOperand($var->original).'>'.' '.$this->printableResult($var);
             }
 
-            return "Var{$type}#".$this->getVarId($var).' '.$this->printableResult($var);
+            return "Var{$type}#".$this->getVarId($var);
         }
         if ($var instanceof NullOperand) {
             return "NULL";
@@ -170,11 +170,15 @@ abstract class Printer
                 return 'Symbol';
             }
             else if (is_array($result->value)) {
-                return print_r($result->value, true);
+                return 'Array['.sizeof($result->value).']';
             }
             else {
-                return $result->value;
+                return "'".$result->value."'";
             }
+        }
+        if($op instanceof Literal) {
+            echo $result->value . PHP_EOL;
+            return $result->value;
         }
         // var_dump($op);
         // die;
