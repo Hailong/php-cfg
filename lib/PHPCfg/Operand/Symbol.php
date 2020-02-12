@@ -26,8 +26,9 @@ class Symbol extends Operand
      *
      * @param Operand|null $original The previous variable this was constructed from
      */
-    public function __construct(Operand $original = null)
+    public function __construct(Operand $original = null, bool $is_set=true)
     {
+        $this->is_set = $is_set;
         $this->original = $original;
         $this->value = 'Symbol';
     }

@@ -162,6 +162,9 @@ abstract class Printer
 
     protected function printableResult($op) {
         $result = $op->getResult();
+        if ($result instanceof Operand\Temporary) {
+            return 'Temp';
+        }
         if (null !== $result) {
             if ($result instanceof Operand\NullOperand) {
                 return 'NULL';
