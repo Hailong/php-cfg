@@ -176,7 +176,12 @@ abstract class Printer
                 return 'Array['.sizeof($result->value).']';
             }
             else {
-                return "'".$result->value."'";
+                if ($result->value instanceof Operand\Temporary) {
+                    return 'Temp';
+                }
+                else {
+                    return "'".$result->value."'";
+                }
             }
         }
         if($op instanceof Literal) {
