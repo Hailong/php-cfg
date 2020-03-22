@@ -25,7 +25,7 @@ abstract class Operand
 
     public array $usages = [];
 
-    protected ?Operand $exec_result = null;
+    public ?Operand $exec_result = null;
 
     public function __construct(array $attributes = [])
     {
@@ -153,7 +153,8 @@ abstract class Operand
         $this->exec_result = $result;
     }
 
-    public function getResult() {
-        return $this->exec_result ?? null;
+    public function &getResult() {
+        $result = $this->exec_result ?? null;
+        return $result;
     }
 }

@@ -14,13 +14,15 @@ namespace PHPCfg\Operand;
 use PHPCfg\Operand;
 use PHPTypes\Type;
 
-class Literal extends Operand
+class Reference extends Operand
 {
     public $value;
+    public $reference;
 
-    public function __construct($value, ?Type $type=null)
+    public function __construct($value, $reference=null, ?Type $type=null)
     {
         $this->value = $value;
+        $this->reference = $reference;
         if (null !== $type) {
             $this->type = $type;
         }
